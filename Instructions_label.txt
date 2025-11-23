@@ -1,0 +1,13 @@
+Instructions to follow while labeling data:
+
+IMPORTANT!!
+
+cd ~/Desktop
+python3 label_video_multipoint.py plane_2.mov
+
+Next, label the points as follows:
+nose
+left edge
+right edge
+exhaust
+vertical stab tip

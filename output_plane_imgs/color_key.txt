@@ -1,5 +1,0 @@
- nose P: RGB(213, 78, 56)
- leftw P: RGB(239, 120, 112)
- rightw P: RGB(107, 85, 238)
- rear P: RGB(76, 223, 239)
- rudder P: RGB(189, 72, 201)
