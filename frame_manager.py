@@ -7,9 +7,12 @@ import cv2, time, numpy as np, torch
 import torch.nn.functional as F
 
 # ---------- Config ----------
-INPUT_SIZE = (64, 64)     # (H, W) model input resolution
+INPUT_SIZE = (128, 128)     # (H, W) model input resolution
+##INPUT_SIZE = (128, 128)     # (H, W) model input resolution
 LABELS = ["Nose", "L", "R", "T", "V"]  # optional
-COLORS = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255)]  # BGR
+##LABELS = ["L", "R", "T", "O"]  # optional
+##COLORS = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(255,0,255)]  # BGR
+COLORS = [(255,0,0),(0,255,0),(0,0,255), (255,255,0)]  # BGR
 DRAW_RADIUS = 3
 DRAW_THICKNESS = 2
 USE_SOFT_ARGMAX = True     # True for differentiable-ish expected-value coords
@@ -43,6 +46,22 @@ def _softargmax_coords(hm, tau=-3.0):  # hm: logits or probs, (B,C,Hh,Wh)
     y = (p * yv).sum(dim=(2,3))
     return x, y
 
+def _expected_coords(hm):  # hm: logits or probs, (B,C,Hh,Wh)
+    # improve stability by subtracting max per map
+    B, C, Hh, Wh = hm.shape
+    xs = torch.linspace(0.5, Wh-0.5, Wh)
+    ys = torch.linspace(0.5, Wh-0.5, Wh)
+    X, Y = torch.meshgrid(xs, ys, indexing="xy")
+    pts = torch.stack([X.reshape(-1), Y.reshape(-1)], dim=-1)  # (N, 2), N = grid_size^2
+    pts = pts.view((1, 1,)+pts.shape).repeat((B, C, 1, 1))
+    pts[0][0]
+    rearranged_probabilities = hm.view((B, C, Wh*Wh, 1)).repeat((1, 1, 1, 2))
+    #print(rearranged_probabilities.shape)
+    weighted_coords = rearranged_probabilities * pts
+    ev_coords = torch.sum(weighted_coords, dim=2)
+    #print(ev_coords)
+    return ev_coords[0, :, 0], ev_coords[0, :, 1]
+
 def heatmaps_to_coords(heatmaps):
     """
     heatmaps: Tensor (B, C, Hh, Wh) — can be raw logits.
@@ -50,6 +69,8 @@ def heatmaps_to_coords(heatmaps):
     Assumes model input is resized from original to INPUT_SIZE, then we scale back.
     """
     B, C, Hh, Wh = heatmaps.shape
+
+    """
     # choose coord extractor
     if USE_SOFT_ARGMAX:
         xh, yh = _softargmax_coords(heatmaps)
@@ -57,6 +78,8 @@ def heatmaps_to_coords(heatmaps):
         # If heatmaps are logits, you may want sigmoid first (optional):
         # heatmaps = torch.sigmoid(heatmaps)
         xh, yh = _argmax_coords(heatmaps)
+    """
+    xh, yh = _expected_coords(heatmaps)
     # Map heatmap coords -> model input coords -> back to original frame coords
     sx = INPUT_SIZE[1] / float(Wh)
     sy = INPUT_SIZE[0] / float(Hh)
@@ -79,6 +102,7 @@ def draw_points(frame_bgr, xs_in, ys_in, orig_wh):
     scale_y = h0 / float(h_in)
 
     for i in range(xs_in.shape[0]):
+    ##for i in range(xs_in.shape[0]-1):
         x0 = int(xs_in[i].item() * scale_x)
         y0 = int(ys_in[i].item() * scale_y)
         color = COLORS[i % len(COLORS)]
