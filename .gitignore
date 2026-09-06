@@ -1,4 +1,6 @@
 /ignore/
+/model_output_*
+/outp/
 /output_plane_imgs/
 /outp/
 /plane_data/
