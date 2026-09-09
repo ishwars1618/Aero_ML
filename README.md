@@ -10,8 +10,10 @@ Here is an example.
 
 This work uses heatmap regression, in which a photo of the aircraft is taken as an input and the output is a set of 5 heatmaps -- each heatmap is a likelihood distribution for where the corresponding landmark is in the image. Since there are 5 landmarks to detect (nose tip, left wing tip, right wing tip, rear end, vertical stabilizer tip), the model predicts 5 heatmaps.
 
+__Unet Landmarks__
 ![UNet landmarks](https://github.com/user-attachments/assets/d6440481-bd31-4383-9a2c-02ada6b2e26e)
 
+__ViT Landmarks__
 ![Vision Transformer landmarks](https://github.com/user-attachments/assets/f2721cad-e9b8-4f9e-b518-5bb1aecc6008)
 
 # Get started
