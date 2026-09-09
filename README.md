@@ -4,7 +4,7 @@ In this project, I constructed different deep learning architectures **from scra
 
 Here is an example.
 
-![](ignore/example.png)
+![F16 with the five predicted landmarks](example.png)
 
 **Nose** is the nose of the aircraft, **L** is the left wingtip, **R** is the right wingtip, **T** is the tail point, and **V** is the tip of the vertical stabilizer.
 
