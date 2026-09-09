@@ -1,6 +1,13 @@
+/__pycache__/
 /ignore/
-/model_output_*
+/model_output_010926_128x128_t*/
+/model_output_020926_128x128_transformer/
+/model_output_090826_128x128_transformer/
+!/model_output_090826_128x128_transformer_fixed/
+/model_output_090526_128x128_unet/
+!/model_output_090826_128x128_unet/
 /outp/
 /output_plane_imgs/
 /outp/
-/plane_data/
+*.pt
+!*_noopt.pt

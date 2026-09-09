@@ -1,5 +1,0 @@
-Before August 16, 2025: Tried training massive convolutional neural network (kernel=5, layers=30, channels=15) to map 900 heatmaps to heatmaps of landmarks -- not successful
-
-Now, including batchnorm for stability, and reducing the number of layers to 5 / channels to 10.
-Also changing output to nn.sigmoid, and using BCEloss
-
