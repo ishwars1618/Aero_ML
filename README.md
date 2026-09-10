@@ -23,7 +23,7 @@ __ViT Landmarks__
 Install PyTorch for MacOS.
 The following is run entirely locally, on an M3 Pro chip.
 
-Video demo: first, check if you have the `model_output_090826_128x128_unet` and the `model_output_090826_128x128_transformer_fixed` directories, wwith the appropriate checkpoints.
+Video demo: first, check if you have the `model_output_090826_128x128_unet` and the `model_output_090826_128x128_transformer_fixed` directories, with the appropriate checkpoints.
 * UNet: `python video_demo.py unet_config.json`
 * ViT: `python video_demo.py vit_config.json`
 
@@ -37,14 +37,15 @@ The training + inference flow in the top level (consisting of `.py` scripts) wer
 
 # Model details:
 
-UNet: a single-stage hourglass, 4 downscales & upscales (16 -> 16 -> 32 -> 64 -> 128 channels at the bottleneck, mirrored back up), with a skip connection concatenating each encoder level onto the matching decoder level, and 10.4M parameters. Each level pairs a 5x5 convolution with a dilated 7x7 one under BatchNorm + LeakyReLU. Separately from those skip connections, every downsample and upsample carries an internal residual branch that is *added* rather than concatenated: a strided convolution summed with a max-pooled 1x1 projection on the way down, a transposed convolution summed with a nearest-neighbour upsampled one on the way up. The final 1x1 convolution produces the 5 landmark heatmaps at full `model_image_size` resolution, which a spatial softmax turns into probability maps where each heatmap sums to 1.
-ViT: a 3-layer vision transformer over 16x16 = 256 tokens, 4.6M parameters. A fixed, frozen 8x8 identity convolution slices the 128x128 input into non-overlapping patches (3x8x8 = 192 values per patch), a 1x1 convolution projects those to a 256-dimensional embedding, and a learnable absolute position encoding is added once before the stack. Each layer is 4-head self-attention over all 256 tokens, with layer-norm on input, and scaled by 256 instead of sqrt(256), followed by a residual-plus-layer-norm merge with the layer input, then a 3-layer 1x1-convolution MLP carrying its own residual branch, with a BatchNorm between layers. Three stride-2 transposed convolutions decode the 16x16 token grid back to full resolution (256 -> 64 -> 16 -> 5 channels), producing the same 5 heatmaps as the UNet. Excluding the patch encoder and the decoder layers, this ViT uses only 1x1 convolutions, so local features come from per-patch FFNs and all cross-patch reasoning, which includes telling the left wingtip from the right, comes from dot-product attention.
+**UNet**: a single-stage hourglass, 4 downscales & upscales (16 -> 16 -> 32 -> 64 -> 128 channels at the bottleneck, mirrored back up), with a skip connection concatenating each encoder level onto the matching decoder level, and 10.4M parameters. Each level pairs a 5x5 convolution with a dilated 7x7 one under BatchNorm + LeakyReLU. Separately from those skip connections, every downsample and upsample carries an internal residual branch that is *added* rather than concatenated: a strided convolution summed with a max-pooled 1x1 projection on the way down, a transposed convolution summed with a nearest-neighbour upsampled one on the way up. The final 1x1 convolution produces the 5 landmark heatmaps at full `model_image_size` resolution, which a spatial softmax turns into probability maps where each heatmap sums to 1.
+
+**ViT**: a 3-layer vision transformer over 16x16 = 256 tokens, 4.6M parameters. A fixed, frozen 8x8 identity convolution slices the 128x128 input into non-overlapping patches (3x8x8 = 192 values per patch), a 1x1 convolution projects those to a 256-dimensional embedding, and a learnable absolute position encoding is added once before the stack. Each layer is 4-head self-attention over all 256 tokens, with layer-norm on input, and scaled by 256 instead of sqrt(256), followed by a residual-plus-layer-norm merge with the layer input, then a 3-layer 1x1-convolution MLP carrying its own residual branch, with a BatchNorm between layers. Three stride-2 transposed convolutions decode the 16x16 token grid back to full resolution (256 -> 64 -> 16 -> 5 channels), producing the same 5 heatmaps as the UNet. Excluding the patch encoder and the decoder layers, this ViT uses only 1x1 convolutions, so local features come from per-patch FFNs and all cross-patch reasoning, which includes telling the left wingtip from the right, comes from dot-product attention.
 
 # Dataset
 
 The folder `plane_data` contains images and their respective labeled points in CSV format. The folder `outp` visualizes these labelings, containing the original image and the annotated image. I labeled 900 frames in a 20-minute screen-recorded video, with the help of `label_video_multipoint.py` that enables the user to pan through a video frame-by-frame and click points on landmarks so that their locations are saved in CSV format.
 
-The model is trained on these input+output image pairs:
+The model is trained on these (input, output) image pairs:
 * input: an image of dimension `(3, model_image_size, model_image_size)`, with values in the range (-1, 1).
 * outputs: an image of dimension `(5, model_image_size, model_image_size)`, where each of the 5 images is a probability map whose values sum to 1. The target for each probability map is $N(\mu, \sigma^2)$ where $\mu$ is the pixel coordinates of the landmark, and $\sigma \approx 5$ pixels. See `coord_to_heatmap()` for implementation details.
 
