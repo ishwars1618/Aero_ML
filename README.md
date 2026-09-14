@@ -1,6 +1,6 @@
-# Detecting landmarks of aircraft in the Aerofly RC10 Simulator
+# Machine Learning models for detecting landmarks of aircraft in the Aerofly RC10 Simulator
 
-In this project, I constructed different deep learning architectures **from scratch** to extract landmark locations from images of an F16 aircraft in a remote-control flight simulator.
+In this project, I constructed & trained different deep learning architectures **from scratch** to extract landmark locations from images of an F16 aircraft in a remote-control flight simulator.
 
 Here is an example.
 
